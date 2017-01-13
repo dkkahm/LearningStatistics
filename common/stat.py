@@ -257,15 +257,28 @@ def make_hist(xs, class_ticks):
 
     return hist, crs
 
-def make_hist_with_mono_class_range(xs, class_ticks):
-    # list of frequceny of class
-    cfs = [0 for _ in range(len(class_ticks) - 1)]
+def make_hist_with_mono_class_range(xs, class_tick_count, class_bottom = None, class_top = None):
+    if class_bottom == None:
+        class_bottom = min(xs)
+    if class_top == None:
+        class_top = max(xs)
 
+    # list of frequceny of class
+    cfs = [0 for _ in range(class_tick_count)]
+
+    # class range unit
+    cru = (class_top - class_bottom) / class_tick_count
+    crs = [class_bottom + i * cru for i in range(class_tick_count + 1)]
+
+    last_cr_index = len(crs) - 1
     for x in xs:
-        for ci, c in enumerate(class_ticks):
-            if x >= c and x < class_ticks[ci + 1]:
-                cfs[ci] = cfs[ci] + 1
-                break
+        if x >= crs[last_cr_index]:
+            cfs[last_cr_index - 1] = cfs[last_cr_index - 1] + 1
+        else:
+            for ci, _ in enumerate(crs):
+                if crs[ci] <= x < crs[ci + 1]:
+                    cfs[ci] = cfs[ci] + 1
+                    break
 
     # total frequency
     tf = sum(cfs)
@@ -273,4 +286,4 @@ def make_hist_with_mono_class_range(xs, class_ticks):
     for fi, f in enumerate(cfs):
             hist.append(f / tf)
 
-    return hist
+    return hist, crs

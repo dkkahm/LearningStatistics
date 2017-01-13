@@ -177,9 +177,6 @@ def bernoulli_trial(p):
     import random
     return 1 if random.random() < p else 0
 
-def binominal(p, n):
-    return sum(bernoulli_trial(p) for _ in range(n))
-
 def binominal_pmf(p, n, y):
     return ncr(n, y) * p ** y * (1 - p) ** (n - y)
 
@@ -187,7 +184,7 @@ def binominal_cmf(p, n, y):
     return sum(binominal_pmf(p, n, x) for x in range(y + 1))
 
 def binominal_trial(p, n):
-    return binominal(p, n)
+    return sum(bernoulli_trial(p) for _ in range(n))
 
 def geometric_pmf(p, n):
     return (1 - p) ** (n - 1) * p
@@ -351,3 +348,51 @@ def inverse_t_cdf(p, df):
         return hi
     else:
         return -inverse_t_cdf(1 - p, df)
+
+normal_probability_below = normal_cdf
+
+def normal_probability_above(lo, mu=0, sigma=1):
+    return 1 - normal_cdf(lo, mu, sigma)
+
+def normal_probability_between(lo, hi, mu=0, sigma=1):
+    return normal_cdf(hi, mu, sigma) - normal_cdf(lo, mu, sigma)
+
+def normal_probability_outside(lo, hi, mu=0, sigma=1):
+    return 1 - normal_probability_between(lo, hi, mu, sigma)
+
+normal_upper_bound = inverse_normal_cdf
+
+def normal_lower_bound(probability, mu=0, sigma=1):
+    return inverse_normal_cdf(1 - probability, mu, sigma)
+
+def normal_two_sided_bounds(probability, mu=0, sigma=1):
+    tail_probability = (1 - probability) / 2
+
+    upper_bound = normal_lower_bound(tail_probability, mu, sigma)
+    lower_bound = normal_upper_bound(tail_probability, mu, sigma)
+
+    return lower_bound, upper_bound
+
+t_probability_below = t_cdf
+
+def t_probability_above(lo, df):
+    return 1 - t_cdf(lo, df)
+
+def t_probability_between(lo, hi, df):
+    return t_cdf(hi, df) - t_cdf(lo, df)
+
+def t_probability_outside(lo, hi, df):
+    return 1 - t_probability_between(lo, hi, df)
+
+t_upper_bound = inverse_t_cdf
+
+def t_lower_bound(probability, df):
+    return inverse_t_cdf(1 - probability, df)
+
+def t_two_sided_bounds(probability, df):
+    tail_probability = (1 - probability) / 2
+
+    upper_bound = t_lower_bound(tail_probability, df)
+    lower_bound = t_upper_bound(tail_probability, df)
+
+    return lower_bound, upper_bound

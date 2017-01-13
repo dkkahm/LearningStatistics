@@ -329,3 +329,25 @@ def exponential_cdf(x, rate=1.0):
     assert(x >= 0)
     import math
     return (1 - math.exp(-rate * x))
+
+def normal_trial(mu=0, sigma=1):
+    import random
+    return random.gauss(mu, sigma)
+
+def t_pdf(x, df):
+    from scipy.stats import t
+    return t.pdf(x, df)
+
+def t_cdf(x, df):
+    from scipy.stats import t
+    return t.cdf(x, df)
+
+def inverse_t_cdf(p, df):
+    from scipy.stats import t
+    alpha = 0.0
+    if p > 0.5:
+        alpha = 1 - (1 - p) * 2
+        _, hi = t.interval(alpha, df)
+        return hi
+    else:
+        return -inverse_t_cdf(1 - p, df)

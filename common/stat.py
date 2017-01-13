@@ -226,3 +226,51 @@ def hypergeometric_trial(g1, g2, n):
         del ball[c]
 
     return n1
+
+def make_hist(xs, class_ticks):
+    # list of frequceny of class
+    cfs = [0 for _ in range(len(class_ticks) - 1)]
+
+    for x in xs:
+        for ci, c in enumerate(class_ticks):
+            if x >= c and x < class_ticks[ci + 1]:
+                cfs[ci] = cfs[ci] + 1
+                break
+
+    # list of class range
+    crs = []
+    # shorted class range
+    scr = class_ticks[1] - class_ticks[0]
+    for ci, c in enumerate(class_ticks):
+        if ci + 1 == len(class_ticks):
+            break
+        cr = class_ticks[ci + 1] - class_ticks[ci]
+        if cr < scr:
+            scr = cr
+        crs.append(cr)
+
+    # total frequency
+    tf = sum(cfs)
+    hist = []
+    for fi, f in enumerate(cfs):
+            hist.append(f / tf * (scr / crs[fi]))
+
+    return hist, crs
+
+def make_hist_with_mono_class_range(xs, class_ticks):
+    # list of frequceny of class
+    cfs = [0 for _ in range(len(class_ticks) - 1)]
+
+    for x in xs:
+        for ci, c in enumerate(class_ticks):
+            if x >= c and x < class_ticks[ci + 1]:
+                cfs[ci] = cfs[ci] + 1
+                break
+
+    # total frequency
+    tf = sum(cfs)
+    hist = []
+    for fi, f in enumerate(cfs):
+            hist.append(f / tf)
+
+    return hist

@@ -396,3 +396,30 @@ def t_two_sided_bounds(probability, df):
     lower_bound = t_upper_bound(tail_probability, df)
 
     return lower_bound, upper_bound
+
+def test_is_big(mu_zero, n, x_mean, x_var, alpha = 0.05):
+    import math
+    K = mu_zero + inverse_normal_cdf(1 - alpha) * math.sqrt(x_var / n)
+    if x_mean <= K:
+        print(x_mean, '<=', K, ": so fail to discard Ho")
+    else:
+        print(K, '<', x_mean, ": so discard Ho")
+
+def test_is_small(mu_zero, n, x_mean, x_var, alpha = 0.05):
+    import math
+    K = mu_zero + inverse_normal_cdf(alpha) * math.sqrt(x_var / n)
+    if K <= x_mean:
+        print(K , '<=', x_mean, ": so fail to discard Ho")
+    else:
+        print(x_mean, '<', K, ": so discard Ho")
+
+def test_is_same(mu_zero, n, x_mean, x_var, alpha = 0.05):
+    import math
+    KL = mu_zero + inverse_normal_cdf(alpha / 2) * math.sqrt(x_var / n)
+    KU = mu_zero + inverse_normal_cdf(1 - alpha / 2) * math.sqrt(x_var / n)
+    if KL <= x_mean <= KU:
+        print(KL, '<=', x_mean, '<=', KU, ": so fail to discard Ho")
+    elif x_mean < KL:
+        print(x_mean, '<', KL, ": so discard Ho")
+    else:
+        print(KU, '<', x_mean, ": so discard Ho")

@@ -397,29 +397,140 @@ def t_two_sided_bounds(probability, df):
 
     return lower_bound, upper_bound
 
-def test_is_big(mu_zero, n, x_mean, x_var, alpha = 0.05):
+def test_mean_is_bigger(mu_zero, n, x_bar, x_var, alpha = 0.05):
     import math
     K = mu_zero + inverse_normal_cdf(1 - alpha) * math.sqrt(x_var / n)
-    if x_mean <= K:
-        print(x_mean, '<=', K, ": so fail to discard Ho")
+    if x_bar <= K:
+        print(x_bar, '<=', K, ": so fail to discard Ho")
+        return False
     else:
-        print(K, '<', x_mean, ": so discard Ho")
+        print(K, '<', x_bar, ": so discard Ho")
+        return True
 
-def test_is_small(mu_zero, n, x_mean, x_var, alpha = 0.05):
+def test_mean_is_smaller(mu_zero, n, x_bar, x_var, alpha = 0.05):
     import math
     K = mu_zero + inverse_normal_cdf(alpha) * math.sqrt(x_var / n)
-    if K <= x_mean:
-        print(K , '<=', x_mean, ": so fail to discard Ho")
+    if K <= x_bar:
+        print(K , '<=', x_bar, ": so fail to discard Ho")
+        return False
     else:
-        print(x_mean, '<', K, ": so discard Ho")
+        print(x_bar, '<', K, ": so discard Ho")
+        return True
 
-def test_is_same(mu_zero, n, x_mean, x_var, alpha = 0.05):
+def test_mean_is_not_same(mu_zero, n, x_bar, x_var, alpha = 0.05):
     import math
     KL = mu_zero + inverse_normal_cdf(alpha / 2) * math.sqrt(x_var / n)
     KU = mu_zero + inverse_normal_cdf(1 - alpha / 2) * math.sqrt(x_var / n)
-    if KL <= x_mean <= KU:
-        print(KL, '<=', x_mean, '<=', KU, ": so fail to discard Ho")
-    elif x_mean < KL:
-        print(x_mean, '<', KL, ": so discard Ho")
+    if KL <= x_bar <= KU:
+        print(KL, '<=', x_bar, '<=', KU, ": so fail to discard Ho")
+        return False
+    elif x_bar < KL:
+        print(x_bar, '<', KL, ": so discard Ho")
+        return True
     else:
-        print(KU, '<', x_mean, ": so discard Ho")
+        print(KU, '<', x_bar, ": so discard Ho")
+        return True
+
+def test_mean_with_p_value(mu_zero, n, x_bar, x_var, alpha = 0.05):
+    import math
+    if x_bar > mu_zero:
+        p = normal_probability_above((x_bar - mu_zero) / math.sqrt(x_var / n))
+    else:
+        p = normal_probability_below((x_bar - mu_zero) / math.sqrt(x_var / n))
+
+    if alpha <= p:
+        print(alpha, '<=', p, ': so failed to discard Ho')
+        return False
+    else:
+        print(p, '<', alpha, ': so discard Ho')
+        return True
+
+def test_mean_is_bigger_with_list(mu_zero, xs, alpha = 0.05):
+    import math
+    n = len(xs)
+    x_bar = mean(xs)
+    x_var = variance_with_frequency(xs, parent = False)
+
+    if n > 30:
+        return test_mean_is_bigger(mu_zero, n, x_bar, x_var, alpha)
+    else:
+        K = mu_zero + inverse_t_cdf(1 - alpha, n - 1) * math.sqrt(x_var / n)
+        if x_bar <= K:
+            print('x_bar = ', x_bar, '<=', K, ": so fail to discard Ho")
+            return False
+        else:
+            print(K, '<', x_bar, " = x_bar: so discard Ho")
+            return True
+
+def test_mean_is_smaller_with_list(mu_zero, xs, alpha = 0.05):
+    import math
+    n = len(xs)
+    x_bar = mean(xs)
+    x_var = variance_with_frequency(xs, parent = False)
+
+    if n > 30:
+        return test_mean_is_smaller(mu_zero, n, x_bar, x_var, alpha)
+    else:
+        K = mu_zero + inverse_t_cdf(alpha, n - 1) * math.sqrt(x_var / n)
+        if K <= x_bar:
+            print(K , '<=', x_bar, "= x_bar: so fail to discard Ho")
+            return False
+        else:
+            print('x_bar =', x_bar, '<', K, ": so discard Ho")
+            return True
+
+def test_mean_is_not_same_with_list(mu_zero, xs, alpha = 0.05):
+    import math
+    import math
+    n = len(xs)
+    x_bar = mean(xs)
+    x_var = variance_with_frequency(xs, parent = False)
+
+    if n > 30:
+        return test_mean_is_not_same(mu_zero, n, x_bar, x_var, alpha)
+    else:
+        KL = mu_zero + inverse_t_cdf(alpha / 2, n - 1) * math.sqrt(x_var / n)
+        KU = mu_zero + inverse_t_cdf(1 - alpha / 2, n - 1) * math.sqrt(x_var / n)
+        if KL <= x_bar <= KU:
+            print(KL, '<=', x_bar, '= x_bar', '<=', KU, ": so fail to discard Ho")
+            return False
+        elif x_bar < KL:
+            print('xbar =', x_bar, '<', KL, ": so discard Ho")
+            return True
+        else:
+            print(KU, '<', x_bar, "= x_bar : so discard Ho")
+            return True
+
+def test_proportion_is_bigger(p_zero, n, p_cap, alpha = 0.05):
+    import math
+    K = p_zero + inverse_normal_cdf(1 - alpha) * math.sqrt(p_zero * (1 - p_zero) / n)
+    if p_cap <= K:
+        print(p_cap, '<=', K, ": so fail to discard Ho")
+        return False
+    else:
+        print(K, '<', p_cap, ": so discard Ho")
+        return True
+
+def test_proportion_is_smaller(p_zero, n, p_cap, alpha = 0.05):
+    import math
+    K = p_zero + inverse_normal_cdf(alpha) * math.sqrt(p_zero * (1 - p_zero) / n)
+    if K <= p_cap:
+        print(K , '<=', p_cap, ": so fail to discard Ho")
+        return False
+    else:
+        print(p_cap, '<', K, ": so discard Ho")
+        return True
+
+def test_proportion_is_not_same(p_zero, n, p_cap, alpha = 0.05):
+    import math
+    KL = p_zero + inverse_normal_cdf(alpha/2) * math.sqrt(p_zero * (1 - p_zero) / n)
+    KU = p_zero + inverse_normal_cdf(1 - alpha / 2) * math.sqrt(p_zero * (1 - p_zero) / n)
+    if KL <= p_cap <= KU:
+        print(KL, '<=', p_cap, '<=', KU, ": so fail to discard Ho")
+        return False
+    elif p_cap < KL:
+        print(p_cap, '<', KL, ": so discard Ho")
+        return True
+    else:
+        print(KU, '<', p_cap, ": so discard Ho")
+        return True

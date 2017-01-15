@@ -481,7 +481,6 @@ def test_mean_is_smaller_with_list(mu_zero, xs, alpha = 0.05):
 
 def test_mean_is_not_same_with_list(mu_zero, xs, alpha = 0.05):
     import math
-    import math
     n = len(xs)
     x_bar = mean(xs)
     x_var = variance_with_frequency(xs, parent = False)
@@ -534,3 +533,133 @@ def test_proportion_is_not_same(p_zero, n, p_cap, alpha = 0.05):
     else:
         print(KU, '<', p_cap, ": so discard Ho")
         return True
+
+def estimate_two_sided_bounds_of_diff_between_two_menas(n1, mu1, var1, n2, mu2, var2, probability = 0.95, variances_should_be_same = False):
+    import math
+
+    sigma = math.sqrt(var1 / n1 + var2 / n2)
+    tail_probability = (1 - probability) / 2
+
+    if n1 > 30 and n2 > 30:
+        return normal_two_sided_bounds(probability, mu1 - mu2, sigma)
+    else:
+        if variances_should_be_same:
+            s = math.sqrt((((n1 - 1) * var1 + (n2 - 1) * var2) / ((n1 - 1) + (n2 - 1))) * (1/n1 + 1/n2))
+            df = n1 + n2 - 2
+
+            upper_bound = (mu1 - mu2) + inverse_t_cdf(1 - tail_probability, df) * s
+            lower_bound = (mu1 - mu2) + inverse_t_cdf(tail_probability, df) * s
+
+            return lower_bound, upper_bound
+        else:
+            df = int((var1/n1 + var2/n2)**2 / ((var1/n1)**2/(n1 - 1) + (var2/n2)**2/(n2 - 1)) + 0.5)
+
+            upper_bound = (mu1 - mu2) + inverse_t_cdf(1 - tail_probability, df) * sigma
+            lower_bound = (mu1 - mu2) + inverse_t_cdf(tail_probability, df) * sigma
+
+            return lower_bound, upper_bound
+
+def test_two_means_are_not_same(n1, mu1, var1, n2, mu2, var2, alpha = 0.05, variances_should_be_same = False):
+    import math
+
+    if n1 > 30 and n2 > 30:
+        return test_mean_is_not_same(0, 1, mu1 - mu2, var1/n1 + var2/n2, alpha)
+    else:
+        if variances_should_be_same:
+            sigma = math.sqrt((((n1 - 1) * var1 + (n2 - 1) * var2) / ((n1 - 1) + (n2 - 1))) * (1/n1 + 1/n2))
+            df = n1 + n2 - 2
+
+            KL = inverse_t_cdf(alpha / 2, df) * sigma
+            KU = inverse_t_cdf(1 - alpha / 2, df) * sigma
+            if KL <= mu1 - mu2 <= KU:
+                print(KL, '<=', mu1 - mu2, '= mu1 - mu2', '<=', KU, ": so fail to discard Ho")
+                return False
+            elif mu1 - mu2 < KL:
+                print('mu1 - mu2 =', mu1 - mu2, '<', KL, ": so discard Ho")
+                return True
+            else:
+                print(KU, '<', mu1 - mu2, "= mu1 - mu2 : so discard Ho")
+                return True
+        else:
+            sigma = math.sqrt(var1/n1 + var2/n2)
+            df = int((var1/n1 + var2/n2)**2 / ((var1/n1)**2/(n1 - 1) + (var2/n2)**2/(n2 - 1)) + 0.5)
+
+            KL = inverse_t_cdf(alpha / 2, df) * sigma
+            KU = inverse_t_cdf(1 - alpha / 2, df) * sigma
+
+            if KL <= mu1 - mu2 <= KU:
+                print(KL, '<=', mu1 - mu2, '= mu1 - mu2', '<=', KU, ": so fail to discard Ho")
+                return False
+            elif mu1 - mu2 < KL:
+                print('mu1 - mu2 =', mu1 - mu2, '<', KL, ": so discard Ho")
+                return True
+            else:
+                print(KU, '<', mu1 - mu2, "= mu1 - mu2 : so discard Ho")
+                return True
+
+def estimate_two_sided_bounds_of_diff_between_two_proportions(n1, p1, n2, p2, probability = 0.95):
+    import math
+
+    sigma = math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+    tail_probability = (1 - probability) / 2
+
+    if n1 > 30 and n2 > 30:
+        sigma = math.sqrt(p1 * (1 - p1) / n1 + p2 * (1 - p2) / n2)
+
+        lower_bound = (p1 - p2) + inverse_normal_cdf(tail_probability) * sigma
+        upper_bound = (p1 - p2) + inverse_normal_cdf(1 - tail_probability) * sigma
+
+        return lower_bound, upper_bound
+    else:
+        pass
+
+def test_two_propotion_are_not_same(n1, p1, n2, p2, alpha = 0.05):
+    import math
+
+    if n1 > 30 and n2 > 30:
+        p_cap = (n1 * p1 + n2 * p2) / (n1 + n2)
+        sigma = math.sqrt(p_cap * (1 - p_cap) * (1 / n1 + 1 / n2))
+
+        KL = inverse_normal_cdf(alpha/2) * sigma
+        KU = inverse_normal_cdf(1 - alpha / 2) * sigma
+        if KL <= p1 - p2 <= KU:
+            print(KL, '<=', p1 - p2, '= p1 - p2', '<=', KU, ": so fail to discard Ho")
+            return False
+        elif p1 - p2 < KL:
+            print('p1 - p2 =', p1 - p2, '<', KL, ": so discard Ho")
+            return True
+        else:
+            print(KU, '<', p1 - p2, "= p1 - p2: so discard Ho")
+            return True
+    else:
+        if variances_should_be_same:
+            sigma = math.sqrt((((n1 - 1) * var1 + (n2 - 1) * var2) / ((n1 - 1) + (n2 - 1))) * (1/n1 + 1/n2))
+            df = n1 + n2 - 2
+
+            KL = inverse_t_cdf(alpha / 2, df) * sigma
+            KU = inverse_t_cdf(1 - alpha / 2, df) * sigma
+            if KL <= mu1 - mu2 <= KU:
+                print(KL, '<=', mu1 - mu2, '= mu1 - mu2', '<=', KU, ": so fail to discard Ho")
+                return False
+            elif mu1 - mu2 < KL:
+                print('mu1 - mu2 =', mu1 - mu2, '<', KL, ": so discard Ho")
+                return True
+            else:
+                print(KU, '<', mu1 - mu2, "= mu1 - mu2 : so discard Ho")
+                return True
+        else:
+            sigma = math.sqrt(var1/n1 + var2/n2)
+            df = int((var1/n1 + var2/n2)**2 / ((var1/n1)**2/(n1 - 1) + (var2/n2)**2/(n2 - 1)) + 0.5)
+
+            KL = inverse_t_cdf(alpha / 2, df) * sigma
+            KU = inverse_t_cdf(1 - alpha / 2, df) * sigma
+
+            if KL <= mu1 - mu2 <= KU:
+                print(KL, '<=', mu1 - mu2, '= mu1 - mu2', '<=', KU, ": so fail to discard Ho")
+                return False
+            elif mu1 - mu2 < KL:
+                print('mu1 - mu2 =', mu1 - mu2, '<', KL, ": so discard Ho")
+                return True
+            else:
+                print(KU, '<', mu1 - mu2, "= mu1 - mu2 : so discard Ho")
+                return True

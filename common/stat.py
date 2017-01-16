@@ -118,10 +118,10 @@ def standard_deviation(xs, parent = False):
        fd is tuple(class, frequence).'''
     import math
     def standard_deviation_of_list(xs, parent = False):
-        return math.sqrt(variance(xs, parent))
+        return math.sqrt(variance_with_frequency(xs, parent=parent))
 
     def standard_deviation_of_fd(fd, parent = False):
-        return math.sqrt(variance_of_fd(fd, parent))
+        return math.sqrt(variance_of_fd(fd, parent=parent))
 
     if isinstance(xs[0], tuple):
         return standard_deviation_of_fd(xs, parent)
@@ -435,9 +435,23 @@ def estimate_mean(**kwargs):
         sigma = sample_sigma / math.sqrt(sample_n)
 
         lower_bound = sample_mu + inverse_t_cdf(tail_probability, sample_n - 1) * sigma
-        upper_bound = sample_mu + inverse_normal_cdf(1 - tail_probability, sample_n - 1) * sigma
+        upper_bound = sample_mu + inverse_t_cdf(1 - tail_probability, sample_n - 1) * sigma
 
         return lower_bound, upper_bound
+
+def estimate_sample_size_for_mean(**kwargs):
+    ''' tolerance :
+        sigma :
+        alpha : '''
+
+    tolerance = kwargs.get("tolerance")
+    sigma = kwargs.get("sigma")
+    alpha = kwargs.get("alpha", 0.05)
+
+    assert(tolerance != None)
+    assert(sigma != None)
+
+    return (inverse_normal_cdf(1 - alpha / 2) * sigma / tolerance) ** 2
 
 def test_mean(**kwargs):
     '''mu_zero :
@@ -533,10 +547,24 @@ def estimate_proportion(**kwargs):
     tail_probability = alpha / 2
     sigma = math.sqrt(p * (1 - p) / n)
 
-    lower_bound = sample_p + inverse_normal_cdf(tail_probability) * sigma
-    upper_bound = sample_p + inverse_normal_cdf(1 - tail_probability) * sigma
+    lower_bound = p + inverse_normal_cdf(tail_probability) * sigma
+    upper_bound = p + inverse_normal_cdf(1 - tail_probability) * sigma
 
     return lower_bound, upper_bound
+
+def estimate_sample_size_for_proportion(**kwargs):
+    ''' tolerance :
+        p :
+        alpha : '''
+
+    tolerance = kwargs.get("tolerance")
+    p = kwargs.get("p")
+    alpha = kwargs.get("alpha", 0.05)
+
+    assert(tolerance != None)
+    assert(p != None)
+
+    return (inverse_normal_cdf(1 - alpha / 2) / tolerance) ** 2 * p * (1 - p)
 
 def test_proportion(**kwargs):
     '''p_zero :

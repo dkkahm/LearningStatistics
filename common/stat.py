@@ -1125,3 +1125,122 @@ def test_ratio_of_sigmas(**kwargs):
 
     else:
         return test_ratio_of_sigmas(n1=n2,sigma1=sigma2,n2=n1,sigma2=sigma1,alpha=alpha,test=TEST_IS_BIGGER)
+
+def simple_regression_equation_parameters_with_list(xs, ys):
+    ''' yi = beta0 + beta1 * xi
+    '''
+    assert(len(xs) == len(ys))
+
+    mux = mean(xs)
+    muy = mean(ys)
+
+    cov = sum((x - mux) * (ys[i] - muy) for i, x in enumerate(xs))
+    x_var = sum((x - mux) ** 2 for x in xs)
+
+    beta1 = cov / x_var
+    beta0 = muy - beta1 * mux
+
+    return beta0, beta1
+
+def correlation_with_list(xs, ys):
+    ''' -1 <= gamma <=1
+    '''
+
+    assert(len(xs) == len(ys))
+
+    import math
+
+    mux = mean(xs)
+    muy = mean(ys)
+
+    cov = sum((xs[i] - mux) * (y - muy) for i, y in enumerate(ys))
+    sigma2x = sum((x - mux) ** 2 for x in xs)
+    sigma2y = sum((y - muy) ** 2 for y in ys)
+
+    return cov / math.sqrt(sigma2x * sigma2y)
+
+def coefficient_with_list(xs, ys):
+    ''' 0 <= gamma ** 2 <=1
+    '''
+
+    assert(len(xs) == len(ys))
+
+    # beta0, beta1 = simple_regression_equation_parameters(xs, ys)
+
+    # mux = mean(xs)
+    # muy = mean(ys)
+
+    # sse = sum((y - (beta0 + beta1 * xs[i])) ** 2 for i, y in enumerate(ys))
+    # ssto = sum((y - muy) ** 2 for y in ys)
+
+    # return 1 - sse / ssto
+
+    return correlation_with_list(xs, ys) ** 2
+
+def test_not_same_by_one_factor_anova_with_list(ls, alpha=0.05):
+    from scipy.stats import f
+
+    total_sum = 0
+    total_count = 0
+    SSE = 0
+    for i, s in enumerate(ls):
+        total_sum = total_sum + sum(s)
+        total_count = total_count + len(s)
+        yi_bar = sum(s) / len(s)
+        for v in s:
+            SSE += (v - yi_bar) ** 2
+    y_bar = total_sum / total_count
+    # print('SSE=', SSE)
+    # print('y_bar=', y_bar)
+
+    TSS = 0
+    SST = 0
+    for i, s in enumerate(ls):
+        yi_bar = sum(s) / len(s)
+        # print('yi_bar[',i,']=',yi_bar)
+        for v in s:
+            TSS += (v - y_bar) ** 2
+            SST += (yi_bar - y_bar) ** 2
+
+    # print('TSS=', TSS)
+    # print('SST=', SST)
+
+    nu1 = len(ls) - 1
+    nu2 = total_count - len(ls)
+    # print('nu1=',nu1)
+    # print('nu2=',nu2)
+
+    MST = SST / nu1
+    # print('MST=', MST)
+    MSE = SSE / nu2
+    # print('MSE=', MSE)
+    F = MST / MSE
+    print('F =', F)
+
+    probability = 1 - alpha * 2
+    _, K = f.interval(probability, nu1, nu2)
+
+    print('K =', K)
+    if F <= K:
+        return False
+    else:
+        return True
+
+def test_not_same_by_chi2(ps, n, alpha=0.05, p0s=None):
+    from scipy.stats import chi2
+
+    if p0s == None:
+        p0s = [1/len(ps) for _, _ in enumerate(ps)]
+
+    X2 = sum((n*p - n*p0s[i]) ** 2/(n*p0s[i]) for i, p in enumerate(ps))
+    print('X2 = ', X2)
+
+    probability = 1 - alpha * 2
+    nu = len(ps) - 1
+    L, K = chi2.interval(probability, nu)
+    print('K =', K)
+
+    if X2 <= K:
+        return False
+    else:
+        return True

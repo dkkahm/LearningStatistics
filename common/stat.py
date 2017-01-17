@@ -961,3 +961,167 @@ def test_diff_between_proportions_of_paired(**kwargs):
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
     return test_mean(mu0=0, mu=d_bar, sigma=sd,n=n,alpha=alpha,test=test)
+
+def estimate_sigma(**kwargs):
+    '''sigma : sample standard deviation (sigma)
+       n : sample size (n)
+       alpha : level of significance'''
+
+    sigma = kwargs.get("sigma")
+    n = kwargs.get("n")
+    alpha = kwargs.get("alpha", 0.05)
+
+    assert(sigma != None)
+    assert(n != None)
+    assert(n >= NORMAL_SAMPLE_SIZE)
+
+    from scipy.stats import chi2
+
+    probability = 1 - alpha
+    chi2_lower, chi2_upper = chi2.interval(probability, n - 1)
+
+    lower_bound = (n - 1) * sigma ** 2 / chi2_upper
+    upper_bound = (n - 1) * sigma ** 2 / chi2_lower
+
+    return math.sqrt(lower_bound), math.sqrt(upper_bound)
+
+def test_sigma(**kwargs):
+    '''sigma0 :
+       sigma : sample standard deviation (sigma)
+       n : sample_size (n)
+       alpha : level of significance
+       test : one of TEST_IS_BIGGER, TEST_IS_SMALLER, TEST_IS_NOT_SAME'''
+
+    sigma0 = kwargs.get("sigma0")
+    sigma = kwargs.get("sigma")
+    n = kwargs.get("n")
+    alpha = kwargs.get("alpha", 0.05)
+    test = kwargs.get("test", TEST_IS_NOT_SAME)
+
+    assert(sigma0 != None)
+    assert(sigma != None)
+    assert(n != None)
+    # assert(n >= NORMAL_SAMPLE_SIZE)
+    assert(test == TEST_IS_BIGGER or test == TEST_IS_SMALLER or TEST_IS_NOT_SAME)
+
+    from scipy.stats import chi2
+
+    theta = (n - 1) * sigma ** 2 / sigma0 ** 2
+    print('theta =', theta)
+
+    if test == TEST_IS_NOT_SAME:
+        probability = 1 - alpha
+
+        KL, KU = chi2.interval(probability, n - 1)
+
+        print('KL =', KL, ', KU =', KU)
+        if KL <= theta <= KU:
+            return False
+        else:
+            return True
+
+    elif test == TEST_IS_BIGGER:
+        probability = 1 - alpha * 2
+
+        _, KU = chi2.interval(probability, n - 1)
+
+        print('KU =', KU)
+        if theta <= KU:
+            return False
+        else:
+            return True
+
+    elif test == TEST_IS_SMALLER:
+        probability = 1 - alpha * 2
+
+        KL, _ = chi2.interval(probability, n - 1)
+
+        print('KL =', KL)
+        if KL <= theta:
+            return False
+        else:
+            return True
+
+def estimate_ratio_of_sigmas(**kwargs):
+    '''sigma1 : sample standard deviation (sigma)
+       n1 : sample size (n)
+       sigma2 : sample standard deviation (sigma)
+       n2 : sample size (n)
+       alpha : level of significance'''
+
+    sigma1 = kwargs.get("sigma1")
+    n1 = kwargs.get("n1")
+    sigma2 = kwargs.get("sigma2")
+    n2 = kwargs.get("n2")
+    alpha = kwargs.get("alpha", 0.05)
+
+    assert(sigma1 != None)
+    assert(n1 != None)
+    # assert(n1 >= NORMAL_SAMPLE_SIZE)
+    assert(sigma2 != None)
+    assert(n2 != None)
+    # assert(n2 >= NORMAL_SAMPLE_SIZE)
+
+    import math
+    from scipy.stats import f
+
+    f_lower, f_upper = f.interval(1 - alpha, n2 - 1, n1 - 1)
+    sigma_ratio = sigma1 ** 2 / sigma2 ** 2
+
+    lower_bound = f_lower * sigma_ratio
+    upper_bound = f_upper * sigma_ratio
+
+    return math.sqrt(lower_bound), math.sqrt(upper_bound)
+
+def test_ratio_of_sigmas(**kwargs):
+    '''sigma1 : sample standard deviation (sigma)
+       n1 : sample size (n)
+       sigma2 : sample standard deviation (sigma)
+       n2 : sample size (n)
+       alpha : level of significance
+       test : one of TEST_IS_BIGGER, TEST_IS_SMALLER, TEST_IS_NOT_SAME'''
+
+    sigma1 = kwargs.get("sigma1")
+    n1 = kwargs.get("n1")
+    sigma2 = kwargs.get("sigma2")
+    n2 = kwargs.get("n2")
+    alpha = kwargs.get("alpha", 0.05)
+    test = kwargs.get("test", TEST_IS_NOT_SAME)
+
+    assert(sigma1 != None)
+    assert(n1 != None)
+    # assert(n1 >= NORMAL_SAMPLE_SIZE)
+    assert(sigma2 != None)
+    assert(n2 != None)
+    # assert(n2 >= NORMAL_SAMPLE_SIZE)
+    assert(test == TEST_IS_BIGGER or test == TEST_IS_SMALLER or TEST_IS_NOT_SAME)
+
+    theta = sigma1 ** 2 / sigma2 ** 2
+    print("theta =", theta)
+
+    from scipy.stats import f
+
+    if test == TEST_IS_NOT_SAME:
+        probability = 1 - alpha
+
+        KL, KU = f.interval(probability, n1 - 1, n2 - 1)
+
+        print("KL =", KL, ", KU =", KU)
+        if KL <= theta <= KU:
+            return False
+        else:
+            return True
+
+    elif test == TEST_IS_BIGGER:
+        probability = 1 - alpha * 2
+
+        _, KU = f.interval(probability, n1 - 1, n2 - 1)
+
+        print("KU =", KU)
+        if theta <= KU:
+            return False
+        else:
+            return True
+
+    else:
+        return test_ratio_of_sigmas(n1=n2,sigma1=sigma2,n2=n1,sigma2=sigma1,alpha=alpha,test=TEST_IS_BIGGER)

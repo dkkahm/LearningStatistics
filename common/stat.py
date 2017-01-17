@@ -404,42 +404,42 @@ TEST_IS_SMALLER = 1
 TEST_IS_NOT_SAME = 2
 
 def estimate_mean(**kwargs):
-    '''parent_sigma : parent standard deviation (sigma)
-       sample_mu : sample mean (mu)
-       sample_sigma : sample standard deviation (sigma)
-       sample_n : sample size (n)
+    '''sigma0 : parent standard deviation (sigma)
+       mu : sample mean (mu)
+       sigma : sample standard deviation (sigma)
+       n : sample size (n)
        alpha : level of significance'''
 
     import math
 
-    parent_sigma = kwargs.get("parent_sigma")
-    sample_mu = kwargs.get("sample_mu")
-    sample_sigma = kwargs.get("sample_sigma")
-    sample_n = kwargs.get("sample_n")
+    sigma0 = kwargs.get("sigma0")
+    mu = kwargs.get("mu")
+    sigma = kwargs.get("sigma")
+    n = kwargs.get("n")
     alpha = kwargs.get("alpha", 0.05)
 
-    assert(sample_n != None)
-    assert(sample_mu != None)
-    assert(parent_sigma != None or sample_sigma != None)
+    assert(n != None)
+    assert(mu != None)
+    assert(sigma0 != None or sigma != None)
 
     tail_probability = alpha / 2
 
-    if sample_n > NORMAL_SAMPLE_SIZE or parent_sigma != None:
-        sigma = (parent_sigma or sample_sigma) / math.sqrt(sample_n)
+    if n > NORMAL_SAMPLE_SIZE or sigma0 != None:
+        sigma = (sigma0 or sigma) / math.sqrt(n)
 
-        lower_bound = sample_mu + inverse_normal_cdf(tail_probability) * sigma
-        upper_bound = sample_mu + inverse_normal_cdf(1 - tail_probability) * sigma
+        lower_bound = mu + inverse_normal_cdf(tail_probability) * sigma
+        upper_bound = mu + inverse_normal_cdf(1 - tail_probability) * sigma
 
         return lower_bound, upper_bound
     else:
-        sigma = sample_sigma / math.sqrt(sample_n)
+        sigma = sigma / math.sqrt(n)
 
-        lower_bound = sample_mu + inverse_t_cdf(tail_probability, sample_n - 1) * sigma
-        upper_bound = sample_mu + inverse_t_cdf(1 - tail_probability, sample_n - 1) * sigma
+        lower_bound = mu + inverse_t_cdf(tail_probability, n - 1) * sigma
+        upper_bound = mu + inverse_t_cdf(1 - tail_probability, n - 1) * sigma
 
         return lower_bound, upper_bound
 
-def estimate_sample_size_for_mean(**kwargs):
+def sample_size_to_estimate_mean_with_tolerance(**kwargs):
     ''' tolerance :
         sigma :
         alpha : '''
@@ -453,76 +453,100 @@ def estimate_sample_size_for_mean(**kwargs):
 
     return (inverse_normal_cdf(1 - alpha / 2) * sigma / tolerance) ** 2
 
+def sample_size_to_estimate_mean_with_error(**kwargs):
+    '''mu0 :
+       mua :
+       sigma :
+       alpha :
+       beta : '''
+
+    import math
+
+    mu0 = kwargs.get("mu0")
+    mua = kwargs.get("mua")
+    sigma = kwargs.get("sigma")
+    alpha = kwargs.get("alpha", 0.05)
+    beta = kwargs.get("beta", 0.1)
+
+    assert(mu0 != None)
+    assert(mua != None)
+    assert(sigma != None)
+
+    return ((inverse_normal_cdf(1 - alpha) + inverse_normal_cdf(1 - beta)) / (mua - mu0) * sigma) ** 2
+
 def test_mean(**kwargs):
-    '''mu_zero :
-       parent_sigma : parent standard_deviation (sigma)
-       sample_mu : sample mean (mu)
-       sample_sigma : sample standard deviation (sigma)
-       sample_n : sample size (n)
+    '''mu0 :
+       sigma0 : parent standard_deviation (sigma)
+       mu : sample mean (mu)
+       sigma : sample standard deviation (sigma)
+       n : sample size (n)
        alpha : level of significance
        test : one of TEST_IS_BIGGER, TEST_IS_SMALLER, TEST_IS_NOT_SAME'''
 
     import math
 
-    mu_zero = kwargs.get("mu_zero")
-    parent_sigma = kwargs.get("parent_sigma")
-    sample_mu = kwargs.get("sample_mu")
-    sample_sigma = kwargs.get("sample_sigma")
-    sample_n = kwargs.get("sample_n")
+    mu0 = kwargs.get("mu0")
+    sigma0 = kwargs.get("sigma0")
+    mu = kwargs.get("mu")
+    sigma = kwargs.get("sigma")
+    n = kwargs.get("n")
     alpha = kwargs.get("alpha", 0.05)
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
-    assert(mu_zero != None)
-    assert(sample_n != None)
-    assert(sample_mu != None)
-    assert(parent_sigma != None or sample_sigma != None)
+    assert(mu0 != None)
+    assert(n != None)
+    assert(mu != None)
+    assert(sigma0 != None or sigma != None)
     assert(test == TEST_IS_BIGGER or test == TEST_IS_SMALLER or TEST_IS_NOT_SAME)
 
-    if test == TEST_IS_SAME:
+    if test == TEST_IS_NOT_SAME:
         tail_probability = alpha / 2
 
-        if sample_n > NORMAL_SAMPLE_SIZE or parent_sigma != None:
-            sigma = (parent_sigma or sample_sigma) / math.sqrt(sample_n)
+        if n > NORMAL_SAMPLE_SIZE or sigma0 != None:
+            sigma = (sigma0 or sigma) / math.sqrt(n)
 
-            KL = mu_zero + inverse_normal_cdf(tail_probability) * sigma
-            KU = mu_zero + inverse_normal_cdf(1 - tail_probability) * sigma
+            KL = mu0 + inverse_normal_cdf(tail_probability) * sigma
+            KU = mu0 + inverse_normal_cdf(1 - tail_probability) * sigma
         else:
-            sigma = sample_sigma / math.sqrt(sample_n)
+            sigma = sigma / math.sqrt(n)
 
-            KL = mu_zero + inverse_t_cdf(tail_probability, sample_n - 1) * sigma
-            KU = mu_zero + inverse_t_cdf(1 - tail_probability, sample_n - 1) * sigma
+            KL = mu0 + inverse_t_cdf(tail_probability, n - 1) * sigma
+            KU = mu0 + inverse_t_cdf(1 - tail_probability, n - 1) * sigma
 
-        if KL <= sample_mu <= KU:
+        print('KL = ', KL, ', KU =', KU)
+        if KL <= mu <= KU:
             return False
         else:
             return True
 
     elif test == TEST_IS_BIGGER:
-        if sample_n > NORMAL_SAMPLE_SIZE or parent_sigma != None:
-            sigma = (parent_sigma or sample_sigma) / math.sqrt(sample_n)
+        if n > NORMAL_SAMPLE_SIZE or sigma0 != None:
+            sigma = (sigma0 or sigma) / math.sqrt(n)
 
-            KU = mu_zero + inverse_normal_cdf(1 - alpha) * sigma
+            KU = mu0 + inverse_normal_cdf(1 - alpha) * sigma
         else:
-            sigma = sample_sigma / math.sqrt(sample_n)
+            sigma = sigma / math.sqrt(n)
 
-            KU = mu_zero + inverse_t_cdf(1 - alpha, sample_n - 1) * sigma
+            KU = mu0 + inverse_t_cdf(1 - alpha, n - 1) * sigma
 
-        if sample_mu <= KU:
+        print('KU = ', KU)
+        if mu <= KU:
             return False
         else:
             return True
 
     elif test == TEST_IS_SMALLER:
-        if sample_n > NORMAL_SAMPLE_SIZE or parent_sigma != None:
-            sigma = (parent_sigma or sample_sigma) / math.sqrt(sample_n)
+        if n > NORMAL_SAMPLE_SIZE or sigma0 != None:
+            sigma = (sigma0 or sigma) / math.sqrt(n)
 
-            KL = mu_zero + inverse_normal_cdf(alpha) * sigma
+            KL = mu0 + inverse_normal_cdf(alpha) * sigma
         else:
-            sigma = sample_sigma / math.sqrt(sample_n)
+            sigma = sigma / math.sqrt(n)
 
-            KL = mu_zero + inverse_t_cdf(alpha, sample_n - 1) * sigma
+            KL = mu0 + inverse_t_cdf(alpha, n - 1) * sigma
 
-        if KL <= sample_mu:
+        print('KL = ', KL)
+        if KL <= mu:
             return False
         else:
             return True
@@ -541,8 +565,8 @@ def estimate_proportion(**kwargs):
     assert(p != None)
     assert(n != None)
     assert(n >= NORMAL_SAMPLE_SIZE)
-    assert(n * p > 5)
-    assert(n * (1 - p) > 5)
+    assert(n * p >= 5)
+    assert(n * (1 - p) >= 5)
 
     tail_probability = alpha / 2
     sigma = math.sqrt(p * (1 - p) / n)
@@ -552,7 +576,7 @@ def estimate_proportion(**kwargs):
 
     return lower_bound, upper_bound
 
-def estimate_sample_size_for_proportion(**kwargs):
+def sample_size_to_estimate_proportion_with_tolerance(**kwargs):
     ''' tolerance :
         p :
         alpha : '''
@@ -566,8 +590,28 @@ def estimate_sample_size_for_proportion(**kwargs):
 
     return (inverse_normal_cdf(1 - alpha / 2) / tolerance) ** 2 * p * (1 - p)
 
+def sample_size_to_estimate_proportion_with_error(**kwargs):
+    ''' p0 :
+        alpha :
+        pa :
+        beta : '''
+
+    import math
+
+    p0 = kwargs.get("p0")
+    alpha = kwargs.get("alpha", 0.05)
+    pa = kwargs.get("pa")
+    beta = kwargs.get("beta", 0.1)
+
+    assert(p0 != None)
+    assert(pa != None)
+
+    return ((inverse_normal_cdf(1 - alpha) * math.sqrt(p0*(1-p0)) +
+                inverse_normal_cdf(1 - beta) * math.sqrt(pa*(1-pa))) /
+            (pa - p0)) ** 2
+
 def test_proportion(**kwargs):
-    '''p_zero :
+    '''p0 :
        p : sample proportion (p)
        n : sample size (n)
        alpha : level of significance
@@ -575,28 +619,29 @@ def test_proportion(**kwargs):
 
     import math
 
-    p_zero = kwargs.get("p_zero")
+    p0 = kwargs.get("p0")
     p = kwargs.get("p")
     n = kwargs.get("n")
     alpha = kwargs.get("alpha", 0.05)
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
-    assert(p_zero != None)
+    assert(p0 != None)
     assert(p != None)
     assert(n != None)
     assert(n >= NORMAL_SAMPLE_SIZE)
-    assert(n * p > 5)
-    assert(n * (1 - p) > 5)
+    assert(n * p >= 5)
+    assert(n * (1 - p) >= 5)
     assert(test == TEST_IS_BIGGER or test == TEST_IS_SMALLER or TEST_IS_NOT_SAME)
 
-    sigma = math.sqrt(p_zero * (1 - p_zero) / n)
+    sigma = math.sqrt(p0 * (1 - p0) / n)
 
     if test == TEST_IS_NOT_SAME:
         tail_probability = alpha / 2
 
-        KL = p_zero + inverse_normal_cdf(tail_probability) * sigma
-        KU = p_zero + inverse_normal_cdf(1 - tail_probability) * sigma
+        KL = p0 + inverse_normal_cdf(tail_probability) * sigma
+        KU = p0 + inverse_normal_cdf(1 - tail_probability) * sigma
 
+        print('KL=', KL, ', KU=', KU)
         if KL <= p <= KU:
             return False
         else:
@@ -605,8 +650,9 @@ def test_proportion(**kwargs):
     elif test == TEST_IS_BIGGER:
         tail_probability = alpha
 
-        KU = p_zero + inverse_normal_cdf(1 - tail_probability) * sigma
+        KU = p0 + inverse_normal_cdf(1 - tail_probability) * sigma
 
+        print('KU=', KU)
         if p <= KU:
             return False
         else:
@@ -614,8 +660,9 @@ def test_proportion(**kwargs):
     elif test == TEST_IS_SMALLER:
         tail_probability = alpha
 
-        KL = p_zero + inverse_normal_cdf(tail_probability) * sigma
+        KL = p0 + inverse_normal_cdf(tail_probability) * sigma
 
+        print('KL=', KL)
         if KL <= p:
             return False
         else:
@@ -628,8 +675,7 @@ def estimate_diff_between_means(**kwargs):
        mu2 : sample 1 mean (mu)
        sigma2 : sample 1 standard deviation (sigma)
        n2 : sample 1 size
-       are_parent_sigamas_same :
-       is_paired :
+       are_parent_sigmas_same :
        alpha : level of significance'''
 
     import math
@@ -640,8 +686,7 @@ def estimate_diff_between_means(**kwargs):
     mu2 = kwargs.get("mu2")
     sigma2 = kwargs.get("sigma2")
     n2 = kwargs.get("n2")
-    are_parent_sigamas_same = kwargs.get("are_parent_sigamas_same", True)
-    is_paired = kwargs.get("is_paired", False)
+    are_parent_sigmas_same = kwargs.get("are_parent_sigmas_same", True)
     alpha = kwargs.get("alpha", 0.05)
 
     assert(mu1 != None)
@@ -656,29 +701,26 @@ def estimate_diff_between_means(**kwargs):
     sn1 = sigma1 ** 2 / n1
     sn2 = sigma2 ** 2 / n2
 
-    if is_paired == False:
-        if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
-            sigma = math.sqrt(sn1 + sn2)
+    if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
+        sigma = math.sqrt(sn1 + sn2)
 
-            lower_bound = diff + inverse_normal_cdf(tail_probability) * sigma
-            upper_bound = diff + inverse_normal_cdf(1 - tail_probability) * sigma
+        lower_bound = diff + inverse_normal_cdf(tail_probability) * sigma
+        upper_bound = diff + inverse_normal_cdf(1 - tail_probability) * sigma
 
-            return lower_bound, upper_bound
-        else:
-            if are_parent_sigamas_same:
-                df = n1 + n2 - 2
-                sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
-                sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
-            else:
-                sigma = math.sqrt(sn1 + sn2)
-                df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
-
-            lower_bound = diff + inverse_t_cdf(tail_probability, df) * sigma
-            upper_bound = diff + inverse_t_cdf(1 - tail_probability, df) * sigma
-
-            return lower_bound, upper_bound
+        return lower_bound, upper_bound
     else:
-        pass
+        if are_parent_sigmas_same:
+            df = n1 + n2 - 2
+            sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
+            sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
+        else:
+            sigma = math.sqrt(sn1 + sn2)
+            df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
+
+        lower_bound = diff + inverse_t_cdf(tail_probability, df) * sigma
+        upper_bound = diff + inverse_t_cdf(1 - tail_probability, df) * sigma
+
+        return lower_bound, upper_bound
 
 def test_diff_between_means(**kwargs):
     '''mu1 : sample 1 mean (mu)
@@ -687,8 +729,7 @@ def test_diff_between_means(**kwargs):
        mu2 : sample 1 mean (mu)
        sigma2 : sample 1 standard deviation (sigma)
        n2 : sample 1 size
-       are_parent_sigamas_same :
-       is_paired :
+       are_parent_sigmas_same :
        alpha : level of significance
        test : one of TEST_IS_BIGGER, TEST_IS_SMALLER, TEST_IS_NOT_SAME'''
 
@@ -700,8 +741,7 @@ def test_diff_between_means(**kwargs):
     mu2 = kwargs.get("mu2")
     sigma2 = kwargs.get("sigma2")
     n2 = kwargs.get("n2")
-    are_parent_sigamas_same = kwargs.get("are_parent_sigamas_same", True)
-    is_paired = kwargs.get("is_paired", False)
+    are_parent_sigmas_same = kwargs.get("are_parent_sigmas_same", True)
     alpha = kwargs.get("alpha", 0.05)
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
@@ -717,81 +757,81 @@ def test_diff_between_means(**kwargs):
     sn1 = sigma1 ** 2 / n1
     sn2 = sigma2 ** 2 / n2
 
-    if is_paired == False:
-        if test == TEST_IS_NOT_SAME:
-            tail_probability = alpha / 2
-            if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
+    if test == TEST_IS_NOT_SAME:
+        tail_probability = alpha / 2
+        if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
+            sigma = math.sqrt(sn1 + sn2)
+
+            KL = inverse_normal_cdf(tail_probability) * sigma
+            KU = inverse_normal_cdf(1 - tail_probability) * sigma
+
+        else:
+            if are_parent_sigmas_same:
+                df = n1 + n2 - 2
+                sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
+                sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
+            else:
                 sigma = math.sqrt(sn1 + sn2)
+                df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
 
-                KL = inverse_normal_cdf(tail_probability) * sigma
-                KU = inverse_normal_cdf(1 - tail_probability) * sigma
+            KL = inverse_t_cdf(tail_probability, df) * sigma
+            KU = inverse_t_cdf(1 - tail_probability, df) * sigma
 
+        print('KL=', KL, ', KU=', KU)
+        if KL <= diff <= KU:
+            return False
+        else:
+            return True
+
+    elif test == TEST_IS_BIGGER:
+        tail_probability = alpha
+        if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
+            sigma = math.sqrt(sn1 + sn2)
+
+            KU = inverse_normal_cdf(1 - tail_probability) * sigma
+
+        else:
+            if are_parent_sigmas_same:
+                df = n1 + n2 - 2
+                sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
+                sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
             else:
-                if are_parent_sigamas_same:
-                    df = n1 + n2 - 2
-                    sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
-                    sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
-                else:
-                    sigma = math.sqrt(sn1 + sn2)
-                    df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
-
-                KL = inverse_t_cdf(tail_probability, df) * sigma
-                KU = inverse_t_cdf(1 - tail_probability, df) * sigma
-
-            if KL <= diff <= KU:
-                return False
-            else:
-                return True
-
-        elif test == TEST_IS_BIGGER:
-            tail_probability = alpha
-            if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
                 sigma = math.sqrt(sn1 + sn2)
+                df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
 
-                KU = inverse_normal_cdf(1 - tail_probability) * sigma
+            KU = inverse_t_cdf(1 - tail_probability, df) * sigma
 
+        print('KU=', KU)
+        if diff <= KU:
+            return False
+        else:
+            return True
+
+    elif test == TEST_IS_SMALLER:
+        tail_probability = alpha
+        if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
+            sigma = math.sqrt(sn1 + sn2)
+
+            KL = inverse_t_cdf(tail_probability, df) * sigma
+
+        else:
+            if are_parent_sigmas_same:
+                df = n1 + n2 - 2
+                sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
+                sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
             else:
-                if are_parent_sigamas_same:
-                    df = n1 + n2 - 2
-                    sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
-                    sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
-                else:
-                    sigma = math.sqrt(sn1 + sn2)
-                    df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
-
-                KU = inverse_t_cdf(1 - tail_probability, df) * sigma
-
-            if diff <= KU:
-                return False
-            else:
-                return True
-
-        elif test == TEST_IS_SMALLER:
-            tail_probability = alpha
-            if n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE:
                 sigma = math.sqrt(sn1 + sn2)
+                df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
 
-                KL = inverse_t_cdf(tail_probability, df) * sigma
+            KL = inverse_t_cdf(tail_probability, df) * sigma
 
-            else:
-                if are_parent_sigamas_same:
-                    df = n1 + n2 - 2
-                    sp2 = ((n1 - 1) * sigma1 ** 2 + (n2 - 1) * sigma2 ** 2) / df
-                    sigma = math.sqrt(sp2 * (1 / n1 + 1 / n2))
-                else:
-                    sigma = math.sqrt(sn1 + sn2)
-                    df = int(((sn1 + sn2) ** 2 / (sn1 ** 2 / (n1 - 1) + sn2 ** 2 / (n2 - 1))) + 0.5)
+        print('KL=', KL)
+        if KL <= diff:
+            return False
+        else:
+            return True
 
-                KL = inverse_t_cdf(tail_probability, df) * sigma
-
-            if KL <= diff:
-                return False
-            else:
-                return True
-    else:
-        pass
-
-def estimate_diff_between_proportion(**kwargs):
+def estimate_diff_between_proportions(**kwargs):
     '''p1 : sample 1 proportion (p)
        n1 : sample 1 size
        p2 : sample 2 proportion (p)
@@ -811,10 +851,10 @@ def estimate_diff_between_proportion(**kwargs):
     assert(p2 != None)
     assert(n2 != None)
     assert(n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE)
-    assert(n1 * p1 > 5)
-    assert(n1 * (1 - p1) > 5)
-    assert(n2 * p2 > 5)
-    assert(n2 * (1 - p2) > 5)
+    assert(n1 * p1 >= 5)
+    assert(n1 * (1 - p1) >= 5)
+    assert(n2 * p2 >= 5)
+    assert(n2 * (1 - p2) >= 5)
 
     diff = p1 - p2
     tail_probability = alpha / 2
@@ -831,7 +871,6 @@ def test_diff_between_proportions(**kwargs):
        n1 : sample 1 size
        p2 : sample 2 proportion (p)
        n2 : sample 2 size
-       is_paired :
        alpha : level of significance
        test : one of TEST_IS_BIGGER, TEST_IS_SMALLER, TEST_IS_NOT_SAME'''
 
@@ -841,7 +880,6 @@ def test_diff_between_proportions(**kwargs):
     n1 = kwargs.get("n1")
     p2 = kwargs.get("p2")
     n2 = kwargs.get("n2")
-    is_paired = kwargs.get("is_paired", False)
     alpha = kwargs.get("alpha", 0.05)
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
@@ -850,10 +888,10 @@ def test_diff_between_proportions(**kwargs):
     assert(p2 != None)
     assert(n2 != None)
     assert(n1 >= NORMAL_SAMPLE_SIZE and n2 >= NORMAL_SAMPLE_SIZE)
-    assert(n1 * p1 > 5)
-    assert(n1 * (1 - p1) > 5)
-    assert(n2 * p2 > 5)
-    assert(n2 * (1 - p2) > 5)
+    assert(n1 * p1 >= 5)
+    assert(n1 * (1 - p1) >= 5)
+    assert(n2 * p2 >= 5)
+    assert(n2 * (1 - p2) >= 5)
     assert(test == TEST_IS_BIGGER or test == TEST_IS_SMALLER or TEST_IS_NOT_SAME)
 
     diff = p1 - p2
@@ -867,6 +905,7 @@ def test_diff_between_proportions(**kwargs):
         KL = inverse_normal_cdf(tail_probability) * sigma
         KU = inverse_normal_cdf(1 - tail_probability) * sigma
 
+        print('KL=', KL, ', KU=', KU)
         if KL <= diff <= KU:
             return False
         else:
@@ -877,6 +916,7 @@ def test_diff_between_proportions(**kwargs):
 
         KU = inverse_normal_cdf(1 - tail_probability) * sigma
 
+        print('KU=', KU)
         if diff <= KU:
             return False
         else:
@@ -886,6 +926,7 @@ def test_diff_between_proportions(**kwargs):
 
         KL = inverse_normal_cdf(tail_probability) * sigma
 
+        print('KL=', KL)
         if KL <= diff:
             return False
         else:
@@ -904,7 +945,7 @@ def estimate_diff_between_proportions_of_paired(**kwargs):
     n = kwargs.get("n")
     alpha = kwargs.get("alpha", 0.05)
 
-    return estimate_mean(sample_mu=d_bar, sample_sigma=sd,sample_n=n,alpha=alpha)
+    return estimate_mean(mu=d_bar, sigma=sd,n=n,alpha=alpha)
 
 def test_diff_between_proportions_of_paired(**kwargs):
     '''d_bar : mean of diff (d bar)
@@ -919,4 +960,4 @@ def test_diff_between_proportions_of_paired(**kwargs):
     alpha = kwargs.get("alpha", 0.05)
     test = kwargs.get("test", TEST_IS_NOT_SAME)
 
-    return test_mean(mu_zero=0, sample_mu=d_bar, sample_sigma=sd,sample_n=n,alpha=alpha,test=test)
+    return test_mean(mu0=0, mu=d_bar, sigma=sd,n=n,alpha=alpha,test=test)

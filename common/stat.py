@@ -252,7 +252,8 @@ def make_hist(xs, class_ticks):
     for fi, f in enumerate(cfs):
             hist.append(f / tf * (scr / crs[fi]))
 
-    return hist, crs
+    del crs[len(crs) - 1]
+    return crs, hist
 
 def make_hist_with_mono_class_range(xs, class_tick_count, class_bottom = None, class_top = None):
     if class_bottom == None:
@@ -283,7 +284,8 @@ def make_hist_with_mono_class_range(xs, class_tick_count, class_bottom = None, c
     for fi, f in enumerate(cfs):
             hist.append(f / tf)
 
-    return hist, crs
+    del crs[len(crs) - 1]
+    return crs, hist 
 
 def normal_pdf(x, mu=0, sigma=1):
     import math
@@ -1244,3 +1246,10 @@ def test_not_same_by_chi2(ps, n, alpha=0.05, p0s=None):
         return False
     else:
         return True
+
+def even_multinomial_trial(k, n):
+    import random
+    x = [0 for _ in range(k)]
+    for _ in range(n):
+        x[random.randrange(k)] += 1
+    return x

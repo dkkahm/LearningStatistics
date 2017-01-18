@@ -285,7 +285,7 @@ def make_hist_with_mono_class_range(xs, class_tick_count, class_bottom = None, c
             hist.append(f / tf)
 
     del crs[len(crs) - 1]
-    return crs, hist 
+    return crs, hist
 
 def normal_pdf(x, mu=0, sigma=1):
     import math
@@ -1144,13 +1144,13 @@ def simple_regression_equation_parameters_with_list(xs, ys):
 
     return beta0, beta1
 
-def correlation_with_list(xs, ys):
+def correlation_with_pairs(pairs):
     ''' -1 <= gamma <=1
     '''
 
-    assert(len(xs) == len(ys))
-
     import math
+
+    xs, ys = zip(*pairs)
 
     mux = mean(xs)
     muy = mean(ys)
@@ -1161,11 +1161,9 @@ def correlation_with_list(xs, ys):
 
     return cov / math.sqrt(sigma2x * sigma2y)
 
-def coefficient_with_list(xs, ys):
+def coefficient_with_pairs(pairs):
     ''' 0 <= gamma ** 2 <=1
     '''
-
-    assert(len(xs) == len(ys))
 
     # beta0, beta1 = simple_regression_equation_parameters(xs, ys)
 
@@ -1177,7 +1175,7 @@ def coefficient_with_list(xs, ys):
 
     # return 1 - sse / ssto
 
-    return correlation_with_list(xs, ys) ** 2
+    return correlation_with_pairs(pairs) ** 2
 
 def test_not_same_by_one_factor_anova_with_list(ls, alpha=0.05):
     from scipy.stats import f
@@ -1195,13 +1193,13 @@ def test_not_same_by_one_factor_anova_with_list(ls, alpha=0.05):
     # print('SSE=', SSE)
     # print('y_bar=', y_bar)
 
-    TSS = 0
+    # TSS = 0
     SST = 0
     for i, s in enumerate(ls):
         yi_bar = sum(s) / len(s)
         # print('yi_bar[',i,']=',yi_bar)
         for v in s:
-            TSS += (v - y_bar) ** 2
+            # TSS += (v - y_bar) ** 2
             SST += (yi_bar - y_bar) ** 2
 
     # print('TSS=', TSS)
@@ -1228,18 +1226,27 @@ def test_not_same_by_one_factor_anova_with_list(ls, alpha=0.05):
     else:
         return True
 
-def test_not_same_by_chi2(ps, n, alpha=0.05, p0s=None):
+def even_multinomial_trial(k, n):
+    import random
+    x = [0 for _ in range(k)]
+    for _ in range(n):
+        x[random.randrange(k)] += 1
+    return x
+
+def test_not_same_of_pairs(pairs, alpha=0.05, df=None):
+    ''' pair : (observed, expeced)
+        df : degree of freedom'''
+
     from scipy.stats import chi2
 
-    if p0s == None:
-        p0s = [1/len(ps) for _, _ in enumerate(ps)]
-
-    X2 = sum((n*p - n*p0s[i]) ** 2/(n*p0s[i]) for i, p in enumerate(ps))
+    X2 = sum((of - ef) ** 2 / ef for of, ef in pairs)
     print('X2 = ', X2)
 
+    df = df or len(pairs) - 1
     probability = 1 - alpha * 2
-    nu = len(ps) - 1
-    L, K = chi2.interval(probability, nu)
+
+    # print('df=', df)
+    _, K = chi2.interval(probability, df)
     print('K =', K)
 
     if X2 <= K:
@@ -1247,9 +1254,32 @@ def test_not_same_by_chi2(ps, n, alpha=0.05, p0s=None):
     else:
         return True
 
-def even_multinomial_trial(k, n):
-    import random
-    x = [0 for _ in range(k)]
-    for _ in range(n):
-        x[random.randrange(k)] += 1
-    return x
+
+def make_pairs_from_contingency_table_for_test_not_same(table):
+    def make_independent_contingency_table(table):
+        # frequeency of rows
+        fr = [sum(row) for row in table]
+
+        # frequency of columns
+        fc = [sum(col for row in table for col in [row[ci]]) for ci in range(len(table[0]))]
+
+        # total_frequency
+        total_frequency = sum(fr)
+
+        # probability table
+        return [[ total_frequency * (fr[ri] / total_frequency * fc[ci] / total_frequency)
+                for ci in range(len(table[0]))]
+                    for ri in range(len(table))]
+
+    from functools import reduce
+
+    # independent table
+    it = make_independent_contingency_table(table)
+
+    # observed list
+    ol = reduce(lambda a, b : a + b, table)
+
+    # expected list
+    el = reduce(lambda a, b : a + b, it)
+
+    return list(zip(ol, el))

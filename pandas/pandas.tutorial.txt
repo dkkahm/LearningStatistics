@@ -1,0 +1,44 @@
+1.1 Reading data from a csv file
+   - read ../data/bikes.csv into bikes
+
+1.2 Selecting a column
+   - select column 'Berri 1'
+
+1.3 Plotting a column
+   - plot column 'Berri 1'
+
+2.0 read '../data/311-service-requests.csv' into complaints
+
+2.2 Selecting columns and rows
+   - select a column of 'Complaint Type'
+
+   - select the first 5 rows of a column of 'Complaint Type'
+   
+2.3 Selecting multiple columns
+   - select column of 'Complaint Type', 'Borough'
+
+2.4 What's the most common complaint type?
+   - get and plot
+
+3.1 Selecting only noise complaints
+   - 'Complaint Type' column의 값이 "Noise - Street/Sidewalk" 인 레코드만을 noise_complaints로 저장
+
+   - 'Complaint Type' column의 값이 "Noise - Street/Sidewalk" 이고 'Borough' column 값이 'ROOKLYN'인 레코드만을 noise_complaints로 저장
+
+3.3 So, which borough has the most noise complaints?
+
+4.1 Adding a 'weekday' column to our dataframe 
+    - read ../data/bikes.csv into bikes
+
+    - select 'Berri 1' column into berri_bikes
+
+    - add 'weekday' column into berri_bikes
+
+4.2 Adding up the cyclists by weekday
+    - group by 'weekday' and sum into weekday_counts
+
+    - chage index from 0, 1, ... to 'Monday', 'Tuesday', ...
+
+    - plot weekday_counts
+
+    - checkout groupby tutorial

@@ -1,0 +1,127 @@
+http://pandas.pydata.org/pandas-docs/stable/groupby.html
+
+1. Splitting an object into groups
+   - Create DF (df)
+     A      B         C         D
+0  foo    one  0.469112 -0.861849
+1  bar    one -0.282863 -2.104569
+2  foo    two -1.509059 -0.494929
+3  bar  three -1.135632  1.071804
+4  foo    two  1.212112  0.721555
+5  bar    two -0.173215 -0.706771
+6  foo    one  0.119209 -1.039575
+7  foo  three -1.044236  0.271860
+
+  - Group by column 'A'
+
+  - Group by column 'A' and 'B'
+
+  - Group columns with 'vowel' letter and 'consonant' letter
+
+  - Create Serise (s)
+1     1
+2     2
+3     3
+1    10
+2    20
+3    30
+
+  - Group by index
+
+  - Get sum of groups
+
+2. GroupBy sorting
+
+  - Create DF (df2)
+   X  Y
+0  B  1
+1  B  2
+2  A  3
+3  A  4
+
+  - Group by column 'X' without sorting
+
+  - Create DF (df3)
+   X  Y
+0  A  1
+1  B  4
+2  A  3
+3  B  2
+
+  - Group by column 'X' and get each group
+
+3. GroupBy object attributes
+
+  - Group df by column 'A' and get groups attribute
+  - Group df's columns to 'vowel' and 'consonant' and get groups attribute
+
+4. GroupBy with MultiIndex
+  - Create Multi-Index with arrays (index) with name 'first' and 'second'
+arrays = [['bar', 'bar', 'baz', 'baz', 'foo', 'foo', 'qux', 'qux'],
+          ['one', 'two', 'one', 'two', 'one', 'two', 'one', 'two']]
+
+  - Create Series of np.random.randn(8) with index (s)
+
+  - Group by level 0  and sum it
+
+  - Group by level 'second' and sum it
+
+  - Create Series (s)
+first  second  third
+bar    doo     one      1.346061
+               two      1.511763
+baz    bee     one      1.627081
+               two     -0.990582
+foo    bop     one     -0.441652
+               two      1.211526
+qux    bop     one      0.268520
+               two      0.024580
+
+  - Group by level 'first' and 'second' and sum it
+
+5. DataFrame column selection in GroupBy
+
+  - Group df with column 'A' and get column 'C' of group 'foo' and 'bar'
+
+6. Iterating through groups
+
+  - Group df with column 'A' and iterate it 
+  - Group df with column 'A' and 'B' and iterate it
+
+7. Aggregation
+  - Group df with column 'A' and sum group
+  - Group df with column 'A' and sum group, key sould not be index
+  - Group df with column 'A' and get size of group
+
+8. Applying multiple functions at once
+  - Group df with column 'A' and sum, mean, std column 'C' all the same time
+
+9. Transformation
+  - Create Series 
+    index = pd.date_range('10/1/1999', periods=1100)
+    ts = pd.Series(np.random.normal(0.5, 2, 1100), index)
+    ts = ts.rolling(window=100,min_periods=100).mean().dropna()
+
+  - Group ts by year of index and standardize the data within each group
+
+  - Create DF (data_df)
+data_df = pd.DataFrame({'A':[np.random.rand() if np.random.randint(0,10) > 0 else float('nan') for _ in range(1000)],
+          'B':[np.random.rand() if np.random.randint(0,10) > 0 else float('nan') for _ in range(1000)],
+          'C':[np.random.rand() if np.random.randint(0,10) > 0 else float('nan') for _ in range(1000)]})
+countries = np.array(['US', 'UK', 'GR', 'JP'])
+key = countries[np.random.randint(0, 4, 1000)]
+
+  - Group by key
+  - Replace missing data with the group mean.
+
+10. Filtration
+  - Create Series
+    sf = pd.Series([1, 1, 2, 3, 3, 3])
+  -  take only elements that belong to groups with a group sum greater than 2.
+
+  - Create DataFrame
+    dff = pd.DataFrame({'A': np.arange(8), 'B': list('aabbbbcc')})
+  - group by 'B' and filter out elements that belong to groups with only more than a couple members.
+  - group by 'B' and filter out elements as NaN that belong to groups with only more than a couple members.
+
+

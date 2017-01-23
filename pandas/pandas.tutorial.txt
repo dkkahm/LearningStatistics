@@ -42,3 +42,34 @@
     - plot weekday_counts
 
     - checkout groupby tutorial
+
+5.3 Plotting the temperature by hour of day
+    - read csv '../data/weather_2012.csv' into weathre_2012_final
+    - Save March's data into weather_mar2012
+    - Gropy weather_mar2012 by hour and plot mean of group
+
+6.2 Use resampling to find the snowiest month
+    - get median temperature each month and save into temperature and plot it 
+
+    - save whether 'Wether' column has 'Snowing' into is_snowing
+
+    - use resample to find the percentage of time it was snowing each month, save it into snowiness
+ 
+    - combine the two statistics (temperature, snowiness) into a single dataframe (stats)
+
+    - plot stats into subplots
+
+7.1 How do we know if it's messy?
+    - read '../data/311-service-requests.csv' into requests
+    - use unique() onto 'Incident Zip' to check out whether it is messy.
+
+7.3 Fixing the nan values and string/float confusion
+    - We can pass a na_values option to pd.read_csv to clean this up a little bit. ('NO CLUE', 'N/A', '0')
+      We can also specify that the type of Incident Zip is a string, not a float.
+
+7.4 What's up with the dashes?
+    - Save whether row has dash in 'Incident Zip' into rows_with_dashes
+    - Truncate long zip code to 5 length.
+    - make 00000 zip code into nan
+    - save whether zip code starts with '0' or '1' into is_close 
+    - save zip code not starts with '0' or '1' into is_far (assume nan as close)

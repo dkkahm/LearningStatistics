@@ -1,0 +1,25 @@
+1. make a random list of 1,000 baby names using the five ('Bob','Jessica','Mary','John','Mel'). (random_names)
+
+2. Generate a random list of 1000 numbers between 0 and 1000. (births)
+
+3. BabyDataSet is list of tuple (a record from random_names, a record from births)
+
+4. Make df from BabyDataSet with columns 'Names', 'Births'.
+
+5. Save df into 'births1880.txt' without index
+
+6. find the most popular name.
+
+7. 다음의 tuple구성된 4개의 list 을 생성해서 하나로 합친다.
+    - (state, status, data, rng)
+    - state : 'GA','FL','fl','NY','NJ','TX' 중 임의 선택
+    - status : 1,2,3 중 임의 선택
+    - data : 25~1000 중 임의 선택
+    - rng : 2009년 1월 1일 ~ 2012년 12월 31일까지 중 매주 월요일
+    - 
+
+8. 위의 list 사용해서 DataFrame을 생성한다. 'State','Status','CustomerCount','StatusDate' 을 column으로 정한다.
+
+9. 위의 DataFrame을 Excel로 저장한다.
+
+10. 

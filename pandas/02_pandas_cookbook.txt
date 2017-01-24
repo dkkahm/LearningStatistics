@@ -73,3 +73,12 @@
     - make 00000 zip code into nan
     - save whether zip code starts with '0' or '1' into is_close 
     - save zip code not starts with '0' or '1' into is_far (assume nan as close)
+
+8.1 Parsing Unix timestamps
+     - read ../data/popularity-contest into popcon (remove last row)
+     - change column names to 'atime', 'ctime', 'package-name', 'mru-program', 'tag'
+     - change type of column 'atime', 'ctime' to int
+     - chagne type of column 'atime', 'ctime' to datetime with second unit
+     - remove rows with invalid atime
+     - save rows with package-name is not 'lib' into nonlibraries
+     - show 10 most leacent 'ctime' rows of nonlibraries

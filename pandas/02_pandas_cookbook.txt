@@ -1,5 +1,5 @@
 1.1 Reading data from a csv file
-   - read ../data/bikes.csv into bikes
+   - read ../data/bikes.csv into bikes, Date is parsed and index
 
 1.2 Selecting a column
    - select column 'Berri 1'
@@ -23,19 +23,19 @@
 3.1 Selecting only noise complaints
    - 'Complaint Type' column의 값이 "Noise - Street/Sidewalk" 인 레코드만을 noise_complaints로 저장
 
-   - 'Complaint Type' column의 값이 "Noise - Street/Sidewalk" 이고 'Borough' column 값이 'ROOKLYN'인 레코드만을 noise_complaints로 저장
+   - 'Complaint Type' column의 값이 "Noise - Street/Sidewalk" 이고 'Borough' column 값이 'BROOKLYN'인 레코드만을 noise_complaints로 저장
 
 3.3 So, which borough has the most noise complaints?
 
 4.1 Adding a 'weekday' column to our dataframe 
     - read ../data/bikes.csv into bikes
 
-    - select 'Berri 1' column into berri_bikes
+    - select 'Berri 1' column into berri_bikes, berri_bikes should be DataFrame
 
     - add 'weekday' column into berri_bikes
 
 4.2 Adding up the cyclists by weekday
-    - group by 'weekday' and sum into weekday_counts
+    - group berri_bikes by 'weekday' and sum into weekday_counts
 
     - chage index from 0, 1, ... to 'Monday', 'Tuesday', ...
 

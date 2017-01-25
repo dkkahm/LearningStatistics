@@ -18,8 +18,47 @@
     - rng : 2009년 1월 1일 ~ 2012년 12월 31일까지 중 매주 월요일
     - 
 
-8. 위의 list 사용해서 DataFrame을 생성한다. 'State','Status','CustomerCount','StatusDate' 을 column으로 정한다.
+8. 위의 list 사용해서 DataFrame df를 생성한다. 'State','Status','CustomerCount','StatusDate' 을 column으로 정한다.
 
 9. 위의 DataFrame을 Excel로 저장한다.
 
-10. 
+10. Excel을 DataFrame df로 로딩한다. StatusDate를 index로 지정한다.
+
+11. df의 State를 모두 대문자로 변경한다.
+
+12. df의 State 중 NJ를 NY로 변경한다.
+
+13. State가 NY인 것만 추려서 다른 DataFrame으로 저장한다.
+
+14. df를 'State', 'StateData' 로 group하고 sum을 구해서 Daily로 저장한다.
+
+15. Daily에서 'Status' column을 삭제한다.
+
+16. Daily에서 'FL'에 해당하는 자료만 plot한다.
+
+17. Daily에서 'FL'의 2012년 이후 자료만 plot한다.
+
+18. Daily에서 Outl 가정한다.
+
+19. Daily를 'StatusDate'만을 기준으로 group하여 sum한 것을 ALL로 저장한다.
+
+20. ALL에 각 해당 연의 해당 월의 최고 CustomerCount를 가진 "Max" column을 추가한다.
+
+21. 다음 DataFrame (BHAG)를 만든다.
+	            BHAG
+	2011-12-31  1000	
+	2012-12-31  2000
+	2013-12-31  3000
+
+22. BHAG와 ALL을 합쳐서 combined라는 DF를 만든다. index는 정렬되도록 한다.
+
+23. combined의 'BHAG' 컬럼을 'pad' 방식으로 채운 값을 녹색선으로 plot한다.
+
+24. combined의 'Max' 컬럼을 파란색선으로 plot한다.
+
+25. combined를 index의 year값으로 group하여 max() 취한 것을 Year로 저장한다.
+
+26. Year에 "YR_PCT_Change" Column을 추가한다. YR_PCT_Change는 "Max" columne의 percent change (periods=1)이다.
+
+27. 2012년의 pct_change가 유지된다고 가정할 때, 2013년의 Max 값을 추정한다.
+
